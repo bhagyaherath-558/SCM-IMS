@@ -92,6 +92,11 @@ class ProductController {
     @Autowired
     private InventoryRepository inventoryRepository;
 
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts() {
+        return ResponseEntity.ok(productRepository.findAll());
+    }
+
     @PostMapping
     public ResponseEntity<Product> addProduct(@RequestBody Product product) {
         Product savedProduct = productRepository.save(product);
