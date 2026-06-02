@@ -1,304 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import Dashboard from './Dashboard';
+import Login from './Login';
+import Register from './Register';
 import './App.css';
 
 function App() {
-  // State variables - like memory boxes
-  const [inventory, setInventory] = useState([]);
-  const [lowStockItems, setLowStockItems] = useState([]);
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [showStockOps, setShowStockOps] = useState(false);
-  
-  // Form data
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    sku: '',
-    category: '',
-    unitPrice: ''
-  });
-  
-  const [stockData, setStockData] = useState({
-    productId: '',
-    quantity: '',
-    referenceDoc: ''
-  });
-  
-  const [message, setMessage] = useState({ text: '', type: '' });
-
-  // Load data when page opens
   useEffect(() => {
-    loadInventory();
+    // Add a request interceptor
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers['Authorization'] = 'Bearer ' + token;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
   }, []);
 
-  // Get all inventory from backend
-  const loadInventory = async () => {
-    try {
-      const res = await axios.get('http://localhost:8080/api/inventory');
-      setInventory(res.data);
-      
-      // Filter low stock items (quantity < 10)
-      const lowStock = res.data.filter(item => item.quantityOnHand < item.reorderLevel);
-      setLowStockItems(lowStock);
-    } catch (error) {
-      showMessage('Cannot connect to server! Make sure backend is running.', 'error');
+  const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return <Navigate to="/login" replace />;
     }
-  };
-
-  // Show popup message
-  const showMessage = (text, type) => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
-  };
-
-  // Add new product
-  const addProduct = async () => {
-    if (!newProduct.name || !newProduct.sku || !newProduct.unitPrice) {
-      showMessage('Please fill all fields!', 'error');
-      return;
-    }
-
-    try {
-      await axios.post('http://localhost:8080/api/products', {
-        name: newProduct.name,
-        sku: newProduct.sku,
-        category: newProduct.category,
-        unitPrice: parseFloat(newProduct.unitPrice)
-      });
-      
-      showMessage(' Product added successfully!', 'success');
-      setNewProduct({ name: '', sku: '', category: '', unitPrice: '' });
-      setShowAddProduct(false);
-      loadInventory();
-    } catch (error) {
-      const text = error?.response?.data?.message || error.message || 'Error adding product';
-      showMessage(text, 'error');
-      console.error('addProduct error:', error);
-    }
-  };
-
-  // Add stock
-  const addStock = async () => {
-    if (!stockData.productId || !stockData.quantity) {
-      showMessage('Please select product and enter quantity!', 'error');
-      return;
-    }
-
-    try {
-      const res = await axios.post('http://localhost:8080/api/inventory/add', {
-        productId: parseInt(stockData.productId),
-        quantity: parseInt(stockData.quantity),
-        referenceDoc: stockData.referenceDoc || 'MANUAL-001'
-      });
-      
-      showMessage(`Added ${stockData.quantity} units! (${res.data.previousQuantity} → ${res.data.newQuantity})`, 'success');
-      setStockData({ productId: '', quantity: '', referenceDoc: '' });
-      setShowStockOps(false);
-      loadInventory();
-    } catch (error) {
-      showMessage(' Error adding stock', 'error');
-    }
-  };
-
-  // Reduce stock
-  const reduceStock = async () => {
-    if (!stockData.productId || !stockData.quantity) {
-      showMessage('Please select product and enter quantity!', 'error');
-      return;
-    }
-
-    try {
-      const res = await axios.post('http://localhost:8080/api/inventory/reduce', {
-        productId: parseInt(stockData.productId),
-        quantity: parseInt(stockData.quantity),
-        referenceDoc: stockData.referenceDoc || 'SALE-001'
-      });
-      
-      if (res.data.success) {
-        showMessage(` Sold ${stockData.quantity} units! (${res.data.previousQuantity} → ${res.data.newQuantity})`, 'success');
-      } else {
-        showMessage(` ${res.data.error}`, 'error');
-      }
-      
-      setStockData({ productId: '', quantity: '', referenceDoc: '' });
-      setShowStockOps(false);
-      loadInventory();
-    } catch (error) {
-      showMessage(' Error reducing stock', 'error');
-    }
-  };
-
-  // Get product name by ID
-  const getProductName = (productId) => {
-    // You would need a products list for this
-    return `Product ${productId}`;
+    return children;
   };
 
   return (
-    <div className="app">
-      {/* Header */}
-      <header className="header">
-        <h1>Inventory Management System</h1>
-        <p>Track your products and stock levels easily</p>
-      </header>
-
-      {/* Popup Message */}
-      {message.text && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="stats">
-        <div className="stat-card">
-          <div className="stat-number">{inventory.length}</div>
-          <div className="stat-label">Total Products</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {inventory.reduce((sum, item) => sum + item.quantityOnHand, 0)}
-          </div>
-          <div className="stat-label">Total Stock Units</div>
-        </div>
-        <div className="stat-card warning">
-          <div className="stat-number">{lowStockItems.length}</div>
-          <div className="stat-label">Low Stock Alerts</div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="actions">
-        <button className="btn btn-primary" onClick={() => setShowAddProduct(true)}>
-           Add New Product
-        </button>
-        <button className="btn btn-success" onClick={() => setShowStockOps(true)}>
-           Stock Operations
-        </button>
-      </div>
-
-      {/* Add Product Modal */}
-      {showAddProduct && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Add New Product</h2>
-            <input
-              type="text"
-              placeholder="Product Name *"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-            />
-            <input
-              type="text"
-              placeholder="SKU (Unique Code) *"
-              value={newProduct.sku}
-              onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
-            />
-            <input
-              type="text"
-              placeholder="Category"
-              value={newProduct.category}
-              onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-            />
-            <input
-              type="number"
-              placeholder="Price *"
-              value={newProduct.unitPrice}
-              onChange={(e) => setNewProduct({...newProduct, unitPrice: e.target.value})}
-            />
-            <div className="modal-buttons">
-              <button className="btn btn-success" onClick={addProduct}>Save Product</button>
-              <button className="btn btn-danger" onClick={() => setShowAddProduct(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Stock Operations Modal */}
-      {showStockOps && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Stock Operations</h2>
-            <select
-              value={stockData.productId}
-              onChange={(e) => setStockData({...stockData, productId: e.target.value})}
-            >
-              <option value="">Select Product</option>
-              {inventory.map(item => (
-                <option key={item.productId} value={item.productId}>
-                  Product {item.productId} - Stock: {item.quantityOnHand}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Quantity"
-              value={stockData.quantity}
-              onChange={(e) => setStockData({...stockData, quantity: e.target.value})}
-            />
-            <input
-              type="text"
-              placeholder="Reference (PO/SO Number)"
-              value={stockData.referenceDoc}
-              onChange={(e) => setStockData({...stockData, referenceDoc: e.target.value})}
-            />
-            <div className="modal-buttons">
-              <button className="btn btn-primary" onClick={addStock}>  Add Stock (IN)</button>
-              <button className="btn btn-warning" onClick={reduceStock}> Reduce Stock (OUT)</button>
-              <button className="btn btn-danger" onClick={() => setShowStockOps(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Inventory Table */}
-      <div className="inventory-table">
-        <h2>Current Inventory</h2>
-        {inventory.length === 0 ? (
-          <div className="empty-state">
-            <p>No products yet. Click "Add New Product" to get started!</p>
-          </div>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Reorder Level</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventory.map(item => {
-                const isLowStock = item.quantityOnHand < item.reorderLevel;
-                return (
-                  <tr key={item.inventoryId} className={isLowStock ? 'low-stock-row' : ''}>
-                    <td>{item.productId}</td>
-                    <td>{getProductName(item.productId)}</td>
-                    <td className={isLowStock ? 'low-stock' : ''}>
-                      {item.quantityOnHand}
-                    </td>
-                    <td>{item.reorderLevel}</td>
-                    <td>
-                      {isLowStock ? (
-                        <span className="badge badge-danger"> Low Stock!</span>
-                      ) : (
-                        <span className="badge badge-success">In Stock</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Footer */}
-      <footer className="footer">
-        <p>Inventory Management System </p>
-      </footer>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 

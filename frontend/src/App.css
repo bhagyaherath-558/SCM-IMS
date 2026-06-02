@@ -373,3 +373,116 @@ tr:hover {
     font-size: 1.8rem;
   }
 }
+
+/* Auth Styles */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+}
+
+.auth-box {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 440px;
+  transition: transform 0.3s ease;
+}
+
+.auth-box:hover {
+  transform: translateY(-5px);
+}
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 28px;
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-box input,
+.role-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fbfbfb;
+  transition: all 0.25s ease;
+}
+
+.auth-box input:focus,
+.role-select:focus {
+  outline: none;
+  border-color: #27ae60;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1);
+}
+
+.role-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.auth-link a {
+  color: #27ae60;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+  color: #219653;
+  text-decoration: underline;
+}
+
+/* User profile tag in header */
+.user-profile-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.role-tag {
+  letter-spacing: 0.5px;
+}
