@@ -373,3 +373,72 @@ tr:hover {
     font-size: 1.8rem;
   }
 }
+
+/* Additional Custom Styles for Member 2 Edit & Delete Features */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.btn-edit {
+  background: #e8f0fe;
+  color: #1a73e8;
+  border: 1px solid #c2dbff;
+}
+
+.btn-edit:hover {
+  background: #1a73e8;
+  color: white;
+  border-color: #1a73e8;
+  box-shadow: 0 3px 8px rgba(26,115,232,0.25);
+}
+
+.btn-delete {
+  background: #fce8e6;
+  color: #d93025;
+  border: 1px solid #fad2cf;
+}
+
+.btn-delete:hover {
+  background: #d93025;
+  color: white;
+  border-color: #d93025;
+  box-shadow: 0 3px 8px rgba(217,48,37,0.25);
+}
+
+.sku-badge {
+  background: #f1f3f4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: #5f6368;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.font-bold {
+  font-weight: bold;
+}
