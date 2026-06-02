@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import Dashboard from './Dashboard';
+import Login from './Login';
+import Register from './Register';
 import './App.css';
 
 function App() {
+
   // Inventory and Products states
   const [inventory, setInventory] = useState([]);
   const [products, setProducts] = useState([]);
@@ -133,12 +138,27 @@ function App() {
     }
   };
 
-  // Reduce stock
-  const reduceStock = async () => {
-    if (!stockData.productId || !stockData.quantity) {
-      showMessage('Please select product and enter quantity!', 'error');
-      return;
-    }
+  useEffect(() => {
+    // Add a request interceptor
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers['Authorization'] = 'Bearer ' + token;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
+  }, []);
+
 
     try {
       const res = await axios.post('http://localhost:8080/api/inventory/reduce', {
@@ -169,6 +189,14 @@ function App() {
   const getProductName = (productId) => {
     const prod = getProduct(productId);
     return prod ? prod.name : `Product ${productId}`;
+
+  const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return <Navigate to="/login" replace />;
+    }
+    return children;
+
   };
 
   // Extract unique categories dynamically from products
@@ -225,6 +253,7 @@ function App() {
     });
 
   return (
+
     <div className="app">
       {/* Header */}
       <header className="header">
@@ -519,6 +548,22 @@ function App() {
         <p>Inventory Management System - SCM IMS</p>
       </footer>
     </div>
+
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
+
   );
 }
 
