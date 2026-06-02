@@ -20,4 +20,7 @@ public class Product {
     private String category;
 
     private Double unitPrice;
+
+    @Column(name = "image", columnDefinition = "LONGTEXT")
+    private String image;
 }
